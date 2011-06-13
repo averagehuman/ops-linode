@@ -1,0 +1,35 @@
+#!/bin/bash
+# 
+# <UDF name="user_name" label="Unprivileged User Account" />
+# <UDF name="user_password" label="Unprivileged User Password" />
+# <UDF name="user_sshkey" label="Public Key for User" default="" />
+#
+# <UDF name="sshd_port" label="SSH Port" default="22" />
+# <UDF name="sshd_protocol" label="SSH Protocol" oneOf="1,2,1 and 2" default="2" />
+# <UDF name="sshd_permitroot" label="SSH Permit Root Login" oneof="No,Yes" default="No" />
+# <UDF name="sshd_passwordauth" label="SSH Password Authentication" oneOf="No,Yes" default="No" />
+# <UDF name="sshd_group" label="SSH Allowed Groups" default="sshusers" example="List of groups seperated by spaces" />
+#
+# <UDF name="sudo_usergroup" label="Usergroup to use for Admin Accounts" default="wheel" />
+# <UDF name="sudo_passwordless" label="Passwordless Sudo" oneof="Require Password,Do Not Require Password", default="Require Password" />
+
+# <UDF name="allow" label="Allowed services" example="Punch holes in the firewall for these services. SSH is already open (see Restrict SSH)." default="" manyOf="FTP Server: TCP 21,Telnet: TCP 23,SMTP: TCP 25,DNS Server: TCP/UDP 53,Web Server: TCP 80,POP3 Mail Service: TCP 110,NTP Service: UDP 123,IMAP Mail Service: TCP 143,SSL Web Server: TCP 443,Mail Submission: TCP 587,SSL IMAP Server: TCP 993,OpenVPN Server: UDP 1194,IRC Server: TCP 6667">
+# <UDF name="extraT" label="Extra TCP holes" example="Extra holes in the firewall for TCP. Understands service names ('kerberos') and port numbers ('31337'), separate by spaces." default="">
+# <UDF name="extraU" label="Extra UDP holes" example="Extra holes in the firewall for UDP. Understands service names ('daytime') and port numbers ('1094'), separate by spaces." default="">
+# <UDF name="sshrange" label="Restrict SSH" example="Will restrict SSH access to the given CIDR range. Leave empty for no restrictions." default="0/0">
+# <UDF name="icmplevel" label="ICMP paranoia level" example="Rules for ICMP. You should leave this at the default to be a good net citizen." oneOf="Well-behaved,Only allow pings,Ignore all ICMP" default="None">
+# <UDF name="loglevel" label="Logging level" example="How much to log. This can generate a lot of output." oneOf="Nothing,Some stuff,Everything" default="Nothing">
+
+exec &> /root/stackscript.log
+
+source <ssinclude StackScriptID="1">
+
+system_update
+goodstuff
+#Basic Security (fixed)
+source <ssinclude StackScriptID="274">
+#User Security (fixed)
+source <ssinclude StackScriptID="230">
+
+restartServices
+

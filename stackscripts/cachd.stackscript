@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# <udf name="allow" label="Allowed services" manyOf="Web Server: TCP 80,SSL Web Server: TCP 443" default="Web Server: TCP 80">
+
+# <udf name="user_name" label="User Account" />
+# <UDF name="user_password" label="Unprivileged User Password" />
+# <udf name="user_sshkey" label="Public Key for User" />
+# <udf name="sshd_port" label="SSH Port" default="22" />
+
+exec &> /root/stackscript.log
+EXTRAT=""
+EXTRAU=""
+SSHRANGE=""
+ICMPLEVEL="Well-behaved"
+LOGLEVEL="Nothing"
+
+SSHD_PERMITROOT="No"
+SSHD_PROTOCOL="2"
+SSHD_PASSWORDAUTH="No"
+SSHD_GROUP="sshusers"
+SUDO_USERGROUP="wheel"
+SUDO_PASSWORDLESS="Do Not Require Password"
+
+source <ssinclude StackScriptID="1">    # Bash Library
+#source <ssinclude StackScriptID="44">   # Enable Universe
+source <ssinclude StackScriptID="274">  # Basic Security (fixed)
+source <ssinclude StackScriptID="230">  # User Security (fixed)
+
+# proxy-cachd
+KCVERSION="1.2.34"
+KTVERSION="0.9.23"
+
+function build_essential {
+    aptitude -y install build-essential gcc
+}
+
+function lua_essential {
+    aptitude -y install libreadline5-dev
+}
+
+function lua_5_1_4_install_with_patch {
+    pushd /tmp
+    wget http://www.lua.org/ftp/lua-5.1.4.tar.gz
+    tar xvfz lua-5.1.4.tar.gz
+    cd lua-5.1.4/src
+    wget http://www.lua.org/ftp/patch-lua-5.1.4-2
+    patch < patch-lua-5.1.4-2
+    cd ..
+    make linux
+    make install
+    cd ..
+    rm -rf lua-5.1.4
+    popd
+}
+
+function kyoto_essential {
+    aptitude -y install zlib1g-dev
+}
+
+function kyoto_cabinet_install {
+    VERSION="$1"
+    pushd /tmp
+    wget http://fallabs.com/kyotocabinet/pkg/kyotocabinet-$VERSION.tar.gz
+    tar xzvf kyotocabinet-$VERSION.tar.gz
+    cd kyotocabinet-$VERSION
+    ./configure
+    make
+    make install
+    cd ..
+    rm -rf kyotocabinet-$VERSION
+    popd
+}
+
+function kyoto_tycoon_install {
+    VERSION="$1"
+    pushd /tmp
+    wget http://fallabs.com/kyototycoon/pkg/kyototycoon-$VERSION.tar.gz
+    tar xzvf kyototycoon-$VERSION.tar.gz
+    cd kyototycoon-$VERSION
+    ./configure --enable-lua
+    make
+    make install
+    cd ..
+    rm -rf kyototycoon-$VERSION
+    popd
+}
+
+build_essential
+aptitude -y install python python-dev python-setuptools python-virtualenv python-pycurl
+aptitude -y install nginx subversion memcached
+lua_essential
+lua_5_1_4_install_with_patch
+kyoto_essential
+kyoto_cabinet_install $KCVERSION
+kyoto_tycoon_install $KTVERSION
+
+
